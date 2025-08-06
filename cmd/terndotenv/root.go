@@ -38,6 +38,8 @@ func init() {
 	rootCmd.AddCommand(migrateCmd)
 	rootCmd.AddCommand(rollbackCmd)
 	rootCmd.AddCommand(statusCmd)
+	rootCmd.AddCommand(createMigration)
+	rootCmd.AddCommand(generate)
 }
 
 func executeTernCommand(action string, args ...string) {

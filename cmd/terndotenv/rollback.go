@@ -12,8 +12,9 @@ import (
 
 // rollbackCmd representa o comando rollback
 var rollbackCmd = &cobra.Command{
-	Use:   "rollback [opções]",
-	Short: "Reverte a última migração (tern rollback)",
+	Use:     "rollback [opções]",
+	Aliases: []string{"r"},
+	Short:   "Reverte a última migração (tern rollback)",
 	Long: `Reverte a migração mais recente aplicada ao banco de dados.
 Você pode passar argumentos adicionais que serão repassados para o tern.
 Exemplo: dbtool rollback`,
