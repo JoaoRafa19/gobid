@@ -1,0 +1,16 @@
+-- Write your migrate up statements here
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
+    user_name VARCHAR(20) UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash BYTEA NOT NULL,
+    bio TEXT NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    uptaded_at timestamptz NOT NULL DEFAULT now()
+);
+---- create above / drop below ----
+
+    DROP TABLE IF EXISTS users;
+
+-- Write your migrate down statements here. If this migration is irreversible
+-- Then delete the separator line above.

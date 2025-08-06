@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/internal/store/pgstore/migrations/001_create_users_table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/internal/store/pgstore/migrations/002_create_sessions.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/internal/store/pgstore/migrations/003_create_products_table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/internal/store/pgstore/queries/products.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/internal/store/pgstore/queries/users.sql" dialect="PostgreSQL" />
+  </component>
+</project>
