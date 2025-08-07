@@ -64,7 +64,7 @@ Siga os passos abaixo para configurar e executar o ambiente de desenvolvimento l
 
 1.  **Clone o repositório:**
     ```bash
-    git clone <URL_DO_SEU_REPOSITORIO>
+    git clone https://github.com/JoaoRafa19/gobid.git
     cd gobid
     ```
 

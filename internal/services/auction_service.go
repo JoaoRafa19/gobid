@@ -13,17 +13,18 @@ import (
 type Kind uint8
 
 const (
-	// Requests
+
+	// PlaceBid Requests
 	PlaceBid Kind = iota
 
-	// OK/Succes
+	// SuccessfullyPlacedBid OK/Success
 	SuccessfullyPlacedBid
 
-	// Info
+	// NewBidPlaced Info
 	NewBidPlaced
 	AuctionFinished
 
-	// Errors
+	// FailedToPlaceBid Errors
 	FailedToPlaceBid
 	InvalidBody
 )
@@ -77,6 +78,7 @@ func (c *Client) ReadEventLoop() {
 				UserId:  c.UserId,
 				Kind:    InvalidBody,
 			}
+			continue
 		}
 		c.Room.Broadcast <- m
 	}
@@ -167,6 +169,11 @@ func (a *AuctionRoom) unregisterClient(c *Client) {
 func (a *AuctionRoom) broadcastMessage(m Message) {
 	slog.Info("New message received", "Room ID", a.Id, "Message", m, "UserID", m.UserId)
 	switch m.Kind {
+	case AuctionFinished:
+		for _, client := range a.Clients {
+			client.Send <- m
+		}
+		return
 	case InvalidBody:
 		client, ok := a.Clients[m.UserId]
 		if !ok {
@@ -196,6 +203,7 @@ func (a *AuctionRoom) broadcastMessage(m Message) {
 		if client, ok := a.Clients[m.UserId]; ok {
 			client.Send <- Message{
 				Kind:    SuccessfullyPlacedBid,
+				UserId:  m.UserId,
 				Message: "Your bid has been placed!",
 			}
 		}
@@ -208,10 +216,14 @@ func (a *AuctionRoom) broadcastMessage(m Message) {
 				Kind:    NewBidPlaced,
 				Message: "New bid has been placed!",
 				Amount:  bid.Amount,
+				UserId:  m.UserId,
 			}
 
 			client.Send <- newBidMessage
 		}
+	case SuccessfullyPlacedBid:
+	case NewBidPlaced:
+	case FailedToPlaceBid:
 	}
 }
 
