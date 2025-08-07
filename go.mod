@@ -15,7 +15,6 @@ require (
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/csrf v1.7.3
-	github.com/jackc/pgx/v4 v4.7.1
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/jackc/tern/v2 v2.3.3
 	github.com/joho/godotenv v1.5.1
@@ -31,6 +30,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/Masterminds/sprig/v3 v3.3.0 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
 	github.com/imdario/mergo v0.3.9 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

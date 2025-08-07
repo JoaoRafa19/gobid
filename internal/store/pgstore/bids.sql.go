@@ -69,23 +69,35 @@ func (q *Queries) GetBidsByProductId(ctx context.Context, productID uuid.UUID) (
 	return items, nil
 }
 
-const getHighestBidByProductId = `-- name: GetHighestBidByProductId :one
-
+const getHighestBidByProductId = `-- name: GetHighestBidByProductId :many
 SELECT id, product_id, bidder_id, created_at, amount FROM bids
 WHERE product_id = $1
 ORDER BY amount DESC
 LIMIT 1
 `
 
-func (q *Queries) GetHighestBidByProductId(ctx context.Context, productID uuid.UUID) (Bid, error) {
-	row := q.db.QueryRow(ctx, getHighestBidByProductId, productID)
-	var i Bid
-	err := row.Scan(
-		&i.ID,
-		&i.ProductID,
-		&i.BidderID,
-		&i.CreatedAt,
-		&i.Amount,
-	)
-	return i, err
+func (q *Queries) GetHighestBidByProductId(ctx context.Context, productID uuid.UUID) ([]Bid, error) {
+	rows, err := q.db.Query(ctx, getHighestBidByProductId, productID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Bid
+	for rows.Next() {
+		var i Bid
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProductID,
+			&i.BidderID,
+			&i.CreatedAt,
+			&i.Amount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

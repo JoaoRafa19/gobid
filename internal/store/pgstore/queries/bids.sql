@@ -9,8 +9,7 @@ WHERE product_id = $1
 ORDER BY amount DESC
 LIMIT 10;
 
--- name: GetHighestBidByProductId :one
-
+-- name: GetHighestBidByProductId :many
 SELECT * FROM bids
 WHERE product_id = $1
 ORDER BY amount DESC

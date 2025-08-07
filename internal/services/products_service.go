@@ -2,8 +2,10 @@ package services
 
 import (
 	"context"
+	"errors"
 	"github.com/JoaoRafa19/gobid/internal/store/pgstore"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"time"
 )
@@ -12,6 +14,8 @@ type ProductsService struct {
 	pool    *pgxpool.Pool
 	queries *pgstore.Queries
 }
+
+var ErrProductNotFound = errors.New("product not found")
 
 func NewProductsService(pool *pgxpool.Pool) *ProductsService {
 	return &ProductsService{
@@ -39,4 +43,16 @@ func (p *ProductsService) CreateProduct(
 		return uuid.Nil, err
 	}
 	return id, nil
+}
+
+func (p *ProductsService) GetProductById(ctx context.Context, id uuid.UUID) (pgstore.Product, error) {
+	product, err := p.queries.GetProductById(ctx, id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return pgstore.Product{}, ErrProductNotFound
+		}
+		return pgstore.Product{}, err
+	}
+
+	return product, nil
 }

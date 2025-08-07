@@ -27,7 +27,7 @@ func (c CreateProductRequest) Valid(ctx context.Context) validator.Evaluator {
 		"description",
 		"description requires length between 10 and 255 ",
 	)
-	eval.CheckField(c.BasePrice <= 0, "base_price", "base price must be greater than 0")
+	eval.CheckField(c.BasePrice > 0, "base_price", "base price must be greater than 0")
 	eval.CheckField(c.AuctionEnd.Sub(time.Now()) >= minAuctionDuration, "auction_end", "auction time must have at least 2 hours")
 
 	return eval

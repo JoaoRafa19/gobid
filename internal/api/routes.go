@@ -23,13 +23,14 @@ func (a *Api) BindRoutes() {
 				r.Post("/login", a.handleLoginUser)
 				r.Group(func(r chi.Router) {
 					r.Use(a.AuthMiddleware)
-					r.Post("/logout", a.handleSignupUser)
+					r.Post("/logout", a.handleLogOutUser)
 				})
 			})
 			r.Route("/products", func(r chi.Router) {
 				r.Group(func(r chi.Router) {
 					r.Use(a.AuthMiddleware)
 					r.Post("/", a.handleCreateProduct)
+					r.Get("/ws/subscribe/{product_id}", a.handleSubscribeUserToAuction)
 				})
 			})
 		})

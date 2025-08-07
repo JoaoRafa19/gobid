@@ -10,6 +10,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"log"
@@ -51,16 +52,25 @@ func main() {
 	s.Cookie.HttpOnly = true
 	s.Cookie.SameSite = http.SameSiteLaxMode
 
-	api := api.Api{
+	a := api.Api{
 		UserService:     services.NewUsersService(pool),
 		ProductsService: services.NewProductsService(pool),
+		BidsService:     services.NewBidsService(pool),
 		Router:          chi.NewMux(),
-		Sessions:        s,
+		WsUpgrader: &websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		},
+		Sessions: s,
+		AuctionLoby: services.AuctionLobby{
+			Rooms: make(map[uuid.UUID]*services.AuctionRoom),
+		},
 	}
 
-	api.BindRoutes()
+	a.BindRoutes()
 	fmt.Println("Server is running on port 3080")
-	if err := http.ListenAndServe("0.0.0.0:3080", api.Router); err != nil {
+	if err := http.ListenAndServe("0.0.0.0:3080", a.Router); err != nil {
 		panic(err)
 	}
 }
