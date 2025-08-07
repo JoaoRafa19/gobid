@@ -13,12 +13,12 @@ graph TD
     end
 
     subgraph Backend
-        API[API Layer (Gin Gonic)]
+        API[API Layer Gin Gonic]
         Service[Service Layer]
         Usecase[Usecase Layer]
-        DAL[Data Access Layer (sqlc/pgx)]
-        DB[(PostgreSQL Database)]
-        WS[WebSocket (Gorilla)]
+        DAL[Data Access Layer sqlc/pgx]
+        DB[PostgreSQL Database]
+        WS[WebSocket]
     end
 
     User -- HTTP Request --> API
