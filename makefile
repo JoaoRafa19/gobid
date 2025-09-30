@@ -114,3 +114,63 @@ deploy:
 			--source-configuration  file://apprunner-config.json \
 			--region $(REGION); \
 	fi
+
+shutdown:
+	@echo "🛑 Shutting down all AWS services to save costs..."
+	@echo "Pausing AppRunner service..."
+	@SERVICE_ARN=$$(aws apprunner list-services --region $(REGION) --query "ServiceSummaryList[?ServiceName=='$(APP_NAME)'].ServiceArn" --output text 2>/dev/null); \
+	if [ ! -z "$$SERVICE_ARN" ]; then \
+		aws apprunner pause-service --service-arn $$SERVICE_ARN --region $(REGION) && \
+		echo "✅ AppRunner service paused"; \
+	else \
+		echo "ℹ️  No AppRunner service found"; \
+	fi
+	@echo "Stopping RDS instance..."
+	@aws rds stop-db-instance --db-instance-identifier $(DB_NAME) --region $(REGION) 2>/dev/null && \
+	echo "✅ RDS instance stopped" || echo "ℹ️  RDS instance not found or already stopped"
+	@echo "🎯 All services shutdown complete!"
+
+startup:
+	@echo "🚀 Starting up AWS services..."
+	@echo "Starting RDS instance..."
+	@aws rds start-db-instance --db-instance-identifier $(DB_NAME) --region $(REGION) 2>/dev/null && \
+	echo "✅ RDS instance starting" || echo "ℹ️  RDS instance not found or already running"
+	@echo "Resuming AppRunner service..."
+	@SERVICE_ARN=$$(aws apprunner list-services --region $(REGION) --query "ServiceSummaryList[?ServiceName=='$(APP_NAME)'].ServiceArn" --output text 2>/dev/null); \
+	if [ ! -z "$$SERVICE_ARN" ]; then \
+		aws apprunner resume-service --service-arn $$SERVICE_ARN --region $(REGION) && \
+		echo "✅ AppRunner service resumed"; \
+	else \
+		echo "ℹ️  No AppRunner service found"; \
+	fi
+	@echo "🎯 All services startup complete!"
+
+status:
+	@echo "📊 Checking AWS services status..."
+	@echo "AppRunner status:"
+	@aws apprunner list-services --region $(REGION) --query "ServiceSummaryList[?ServiceName=='$(APP_NAME)'].[ServiceName,Status]" --output table 2>/dev/null || echo "  No AppRunner services found"
+	@echo ""
+	@echo "RDS status:"
+	@aws rds describe-db-instances --db-instance-identifier $(DB_NAME) --region $(REGION) --query "DBInstances[0].[DBInstanceIdentifier,DBInstanceStatus]" --output table 2>/dev/null || echo "  No RDS instances found"
+	@echo ""
+	@echo "ECR repositories:"
+	@aws ecr describe-repositories --region $(REGION) --query "repositories[?repositoryName=='$(APP_NAME)'].[repositoryName,createdAt]" --output table 2>/dev/null || echo "  No ECR repositories found"
+
+clean-resources:
+	@echo "⚠️  WARNING: This will DELETE all AWS resources!"
+	@echo "This action cannot be undone. Press Ctrl+C to cancel."
+	@read -p "Type 'DELETE' to confirm: " confirm; \
+	if [ "$$confirm" = "DELETE" ]; then \
+		echo "🗑️  Deleting AppRunner service..."; \
+		SERVICE_ARN=$$(aws apprunner list-services --region $(REGION) --query "ServiceSummaryList[?ServiceName=='$(APP_NAME)'].ServiceArn" --output text 2>/dev/null); \
+		if [ ! -z "$$SERVICE_ARN" ]; then \
+			aws apprunner delete-service --service-arn $$SERVICE_ARN --region $(REGION); \
+		fi; \
+		echo "🗑️  Deleting RDS instance..."; \
+		aws rds delete-db-instance --db-instance-identifier $(DB_NAME) --skip-final-snapshot --region $(REGION) 2>/dev/null; \
+		echo "🗑️  Deleting ECR repository..."; \
+		aws ecr delete-repository --repository-name $(APP_NAME) --force --region $(REGION) 2>/dev/null; \
+		echo "✅ All resources deleted!"; \
+	else \
+		echo "❌ Deletion cancelled"; \
+	fi
