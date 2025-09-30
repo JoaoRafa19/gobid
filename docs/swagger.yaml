@@ -1,0 +1,326 @@
+basePath: /
+definitions:
+  product.CreateProductRequest:
+    properties:
+      auction_end:
+        type: string
+      base_price:
+        type: number
+      description:
+        type: string
+      product_name:
+        type: string
+      seller_id:
+        type: string
+    type: object
+  user.CreateUserRequest:
+    properties:
+      bio:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+      user_name:
+        type: string
+    type: object
+  user.LoginUserRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+host: localhost:3080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server for a bid application.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: GoBid API
+  version: "1.0"
+paths:
+  /api/v1/users/signup:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account.
+      parameters:
+      - description: User signup information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Sign up a new user
+      tags:
+      - users
+  /api/v2/products/ws/subscribe/{product_id}:
+    get:
+      description: Establishes a WebSocket connection for real-time auction updates
+        using cookie-based authentication.
+      parameters:
+      - description: Product ID
+        in: path
+        name: product_id
+        required: true
+        type: string
+      responses: {}
+      summary: Subscribe to auction updates via WebSocket (v2 - Cookie Auth)
+      tags:
+      - products-v2
+  /api/v2/users/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and creates a session cookie.
+      parameters:
+      - description: User login credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user.LoginUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Logs in a user (v2 - Cookie Auth)
+      tags:
+      - users-v2
+  /api/v2/users/logout:
+    post:
+      description: Logs out the currently authenticated user by destroying the session.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Logs out a user (v2 - Cookie Auth)
+      tags:
+      - users-v2
+  /api/v2/users/signup:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account.
+      parameters:
+      - description: User signup information
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Sign up a new user
+      tags:
+      - users
+  /products:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new product and starts an auction for it. This endpoint
+        requires authentication.
+      parameters:
+      - description: Product creation information
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/product.CreateProductRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new product auction
+      tags:
+      - products
+  /products/ws/subscribe/{product_id}:
+    get:
+      description: |-
+        Establishes a WebSocket connection for real-time auction bidding. Once connected, clients can send and receive messages with specific 'kind' types for bidding operations.
+
+        **Message Structure:**
+        All messages follow this JSON format:
+        ```json
+        {
+        "kind": 0,
+        "message": "string",
+        "amount": 0.0,
+        "user_id": "uuid"
+        }
+        ```
+
+        **Message Types (Kind):**
+        - `0` (PlaceBid): Client→Server - Place a new bid
+        - `1` (SuccessfullyPlacedBid): Server→Client - Bid was accepted
+        - `2` (NewBidPlaced): Server→Clients - New bid from another user
+        - `3` (AuctionFinished): Server→Clients - Auction has ended
+        - `4` (FailedToPlaceBid): Server→Client - Bid was rejected
+        - `5` (InvalidBody): Server→Client - Invalid message format
+
+        **Example Messages:**
+
+        Place bid (Client→Server):
+        ```json
+        {"kind": 0, "amount": 150.50}
+        ```
+
+        Bid success response (Server→Client):
+        ```json
+        {"kind": 1, "message": "Your bid has been placed!", "user_id": "uuid"}
+        ```
+
+        New bid notification (Server→Others):
+        ```json
+        {"kind": 2, "message": "New bid has been placed!", "amount": 150.50, "user_id": "uuid"}
+        ```
+      parameters:
+      - description: Product ID (UUID format)
+        in: path
+        name: product_id
+        required: true
+        type: string
+      responses:
+        "101":
+          description: Switching Protocols - WebSocket connection established
+          schema:
+            type: string
+        "400":
+          description: Bad Request - Invalid product ID or auction ended
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized - Invalid or missing JWT token
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found - Product does not exist
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Subscribe to a product auction via WebSocket
+      tags:
+      - auctions
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and provides a session token.
+      parameters:
+      - description: User login credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user.LoginUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Logs in a user
+      tags:
+      - users
+swagger: "2.0"

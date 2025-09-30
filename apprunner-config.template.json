@@ -1,0 +1,23 @@
+{
+  "AuthenticationConfiguration": {
+    "AccessRoleArn": "${AWS_ACCESS_ROLE_ARN}"
+  },
+  "ImageRepository": {
+    "ImageIdentifier": "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/gobid:latest",
+    "ImageRepositoryType": "ECR",
+    "ImageConfiguration": {
+      "Port": "3080",
+      "RuntimeEnvironmentVariables": {
+        "GOBID_APP_PORT": "3080",
+        "GOBID_DATABASE_PORT": "5432",
+        "GOBID_DATABASE_NAME": "gobid",
+        "GOBID_DATABASE_USER": "postgres",
+        "GOBID_DATABASE_PASSWORD": "${GOBID_DATABASE_PASSWORD}",
+        "GOBID_DATABASE_HOST": "${GOBID_DATABASE_HOST}",
+        "GOBID_CSRF_KEY": "${GOBID_CSRF_KEY}",
+        "GOBID_JWT_SECRET": "${GOBID_JWT_SECRET}"
+      }
+    }
+  },
+  "AutoDeploymentsEnabled": false
+}

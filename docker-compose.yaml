@@ -1,0 +1,45 @@
+services:
+  app:
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - ${GOBID_APP_PORT:-3080}:3080
+    environment:
+      - GOBID_DATABASE_HOST=db
+      - GOBID_DATABASE_PASSWORD=${GOBID_DATABASE_PASSWORD}
+      - GOBID_DATABASE_USER=${GOBID_DATABASE_USER}
+      - GOBID_DATABASE_NAME=${GOBID_DATABASE_NAME}
+      - GOBID_DATABASE_PORT=${GOBID_DATABASE_PORT}
+      - GOBID_CSRF_KEY=${GOBID_CSRF_KEY}
+      - TZ=America/Sao_Paulo
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:latest
+    restart: unless-stopped
+    ports:
+      - ${GOBID_DATABASE_PORT:-5432}:5432
+
+    environment:
+      POSTGRES_USER: ${GOBID_DATABASE_USER}
+      POSTGRES_PASSWORD: ${GOBID_DATABASE_PASSWORD}
+      POSTGRES_DB: ${GOBID_DATABASE_NAME}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${GOBID_DATABASE_USER} -d ${GOBID_DATABASE_NAME}",
+        ]
+
+volumes:
+  db_data:
+    driver: local
